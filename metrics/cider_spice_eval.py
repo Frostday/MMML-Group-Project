@@ -45,7 +45,7 @@ def _evaluate_common(pred_list, gt_list, scorer, result_tag):
 
     return results, coco_eval.eval
 
-def evaluate_csv(csv_path, model_name="baseline", limit=100):
+def evaluate_csv(csv_path, model_name="baseline", limit=None):
     scorer = BERTScorer(model_type='bert-base-uncased')
     pred_list, gt_list = [], []
     BERTScore_F1 = 0
@@ -56,7 +56,7 @@ def evaluate_csv(csv_path, model_name="baseline", limit=100):
     with open(csv_path, 'r', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for i, row in enumerate(reader):
-            if i >= limit:
+            if limit is not None and i >= limit:
                 break
             gt = row['answer'].strip()
             generated = row['generated_answer'].strip()
@@ -88,7 +88,8 @@ def evaluate_csv(csv_path, model_name="baseline", limit=100):
     print(f'Samples evaluated: {all}')
     print(f'No-answer samples: {no_samples}\n')
 
-def evaluate_zip(zip_path, model_name="baseline", limit=100):
+
+def evaluate_zip(zip_path, model_name="baseline", limit=None):
     scorer = BERTScorer(model_type='bert-base-uncased')
     pred_list, gt_list = [], []
     BERTScore_F1 = 0
@@ -126,7 +127,7 @@ def evaluate_zip(zip_path, model_name="baseline", limit=100):
                     all += 1
                     added = True
 
-                    if limit and all >= limit:
+                    if limit is not None and all >= limit:
                         break
 
                 if not added:
@@ -135,12 +136,12 @@ def evaluate_zip(zip_path, model_name="baseline", limit=100):
                     counter += 1
                     all += 1
 
-                if limit and all >= limit:
+                if limit is not None and all >= limit:
                     break
-            if limit and all >= limit:
+            if limit is not None and all >= limit:
                 break
 
-    print(f"\n Evaluating ZIP: {zip_path} (model: {model_name})")
+    print(f"\n📦 Evaluating ZIP: {zip_path} (model: {model_name})")
     results, _ = _evaluate_common(pred_list, gt_list, scorer, f'{model_name}_zip')
     if all > 0:
         score = BERTScore_F1 / all
@@ -151,3 +152,23 @@ def evaluate_zip(zip_path, model_name="baseline", limit=100):
     print(f'Failed parsing: {failed_parsing}')
     print(f'Samples evaluated: {all}')
     print(f'No-answer samples: {no_samples}\n')
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Evaluate model outputs using CIDEr, SPICE, and BERTScore")
+    parser.add_argument("--csv", type=str, help="Path to CSV file (use for CSV-based predictions)")
+    parser.add_argument("--zip", type=str, help="Path to ZIP file (use for SPIQA-style JSON responses)")
+    parser.add_argument("--model_name", type=str, default="baseline", help="Name of the model being evaluated")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of examples (default: all)")
+
+    args = parser.parse_args()
+
+    if args.csv:
+        evaluate_csv(args.csv, model_name=args.model_name, limit=args.limit)
+    elif args.zip:
+        evaluate_zip(args.zip, model_name=args.model_name, limit=args.limit)
+    else:
+        print("Please provide either --csv or --zip input file.")
+
