@@ -16,5 +16,5 @@ for paper in text.keys():
 
 df = pd.DataFrame(data, columns=cols)
 df['generated_answer'] = np.nan
-# df.to_csv('sample.csv', index=False)
+# df.to_csv('data/sample.csv', index=False)
 df.to_csv('data/sample_val.csv', index=False)
