@@ -2,7 +2,7 @@ import pandas as pd
 import evaluate
 import numpy as np
 
-df = pd.read_csv("data/blip2_results.csv")
+df = pd.read_csv("data/llava_quantized_fine_tuned_results_cleaned.csv")
 
 df["generated_answer"] = df["generated_answer"].fillna("")
 references = df["answer"].tolist()
